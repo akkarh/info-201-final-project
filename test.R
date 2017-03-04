@@ -9,7 +9,9 @@ seattle <- read.csv('data/Seattle_Crime_Stats_2008_To_Present.csv', stringsAsFac
 
 #created a year column
 seattle.crime <- mutate(seattle, year = substr(REPORT_DATE, 7, 10)) %>% 
-  select(Police.Beat, CRIME_TYPE, STAT_VALUE, REPORT_DATE, Sector, year)
+  mutate(month = substr(REPORT_DATE, 1, 2)) %>% 
+  select(CRIME_TYPE, STAT_VALUE, REPORT_DATE, Sector, month, year)
+names(seattle.crime) <- c("crime.type", "stat.value", "report.date", "sector", "month", "year")
 View(seattle.crime)
 
 colnames(seattle.crime)
