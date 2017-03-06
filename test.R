@@ -14,18 +14,18 @@ View(seattle.crime)
 
 #Crime Vs Years Data Frame
 crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
-#View(crime.years)
+View(crime.years)
 
 #Crime Vs Months
 #NOTE: in the shiny app we will make it that the filtered year can be manipulated by the user
 crime.months <- filter(seattle.crime, year == 2008) %>% 
-group_by(month, crime.type) %>% summarise(test = sum(stat.value))
-#View(crime.months)
+group_by(month, crime.type) %>% summarise(count = sum(stat.value))
+View(crime.months)
 
 #Crime Vs Precincts
 #NOTE: in the shiny app we will make it that the filtered year can be manipulated by the user
 crime.precincts <- filter(seattle.crime, year == 2008) %>% 
-  group_by(precinct, crime.type) %>% summarise(test = sum(stat.value))
+group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
 View(crime.precincts)
 
 
