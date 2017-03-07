@@ -59,3 +59,5 @@ ggplot(crime.precincts, aes(x = precinct, y = count, fill = crime.type)) +
   geom_col() +
   labs(x = "Precincts", y = "Number of occurences of the Crime", title = "Frequencies of Crime Types by Precincts") +
   scale_fill_brewer(type = "qual", palette = "Set2")
+
+
