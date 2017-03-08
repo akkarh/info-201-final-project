@@ -4,12 +4,6 @@ ui <- fluidPage(
   titlePanel("Crime Rates in Seattle"),
   sidebarLayout(
     sidebarPanel(
-      #all vs Specefic crime choice
-      selectInput("crime.selection", label = ("Select Crime"), 
-                  choices = list("All (Default)" = "All", "Homocide" = "Homocide", "Rape" = "Rape", "Robbery" = "Robbery",
-                                 "Assault" = "Assault",  "Larcency-Theft" = "Larcency-Theft", 
-                                 "Motor Vehicle Theft" = "Motor Vehicle Theft", "Burglary" = "Burglary"), 
-                  selected = "All"),
       #selection of x-axis
       radioButtons('xaxis', "X-Axis", choices = c("Years", "Months", "Precincts")),
       #if months is selected as x=axis, allows for selection of year
@@ -17,10 +11,15 @@ ui <- fluidPage(
     ), 
     mainPanel(
       #data visualization
-      plotOutput("plot", hover = "plot_hover"),
-      p("This visualization shows the relationship between the occurences of various types of crimes and ", textOutput('xtitle', inline=TRUE), 
-        ". The graph shows that the most commonly occuring crime is ", textOutput('maxCrime', inline=TRUE),
-        ". The least commonly occuring crime is ", textOutput('minCrime', inline=TRUE), ".")
+      tabsetPanel(
+        tabPanel("Bar Graph", 
+                 plotOutput("plot", hover = "plot_hover"),
+                 p("This visualization shows the relationship between the occurences of various types of crimes and ", textOutput('xtitle', inline=TRUE), 
+                   ". The graph shows that the most commonly occuring crime is ", textOutput('maxCrime', inline=TRUE),
+                   ". The least commonly occuring crime is ", textOutput('minCrime', inline=TRUE), ".")),
+        tabPanel("Pie Charts",
+                 plotOutput("chart", hover = "chart_hover"))
+      )
     )
   )
 )
