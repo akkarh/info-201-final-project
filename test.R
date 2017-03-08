@@ -67,4 +67,5 @@ ggplot(crime.precincts, aes(x = precinct, y = count, fill = crime.type)) +
   labs(x = "Precincts", y = "Number of occurences of the Crime", title = "Frequencies of Crime Types by Precincts") +
   scale_fill_brewer(type = "qual", palette = "Set2")
 
+precinct.info <- read.csv('data/Seattle_Precinct_Information.csv', stringsAsFactors = FALSE)
 

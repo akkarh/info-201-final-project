@@ -18,21 +18,30 @@ ui <- fluidPage(
   tags$p("Use the control widgets to select a variable to view by!"),
   sidebarLayout(
     sidebarPanel(
+      conditionalPanel(
+        condition = "input.tabs == 'Neighborhoods'",
+        selectInput("precinct", "Select a Precinct", choices = c("North", "South", "East", "West", "South West"))
+      ),
       #selection of x-axis
-      radioButtons('xaxis', "Select a variable", choices = c("Years", "Months", "Precincts")),
-      #if months is selected as x=axis, allows for selection of year
-      conditionalPanel(condition = "input.xaxis === 'Months' || input.xaxis == 'Precincts'", selectInput('year', "Year", choices = c(2008:2014)))
+      conditionalPanel(
+        condition = "input.tabs == 'Occurences' || input.tabs == 'Percent Breakdown'",
+        radioButtons('xaxis', "Select a variable", choices = c("Years", "Months", "Precincts")),
+        #if months is selected as x=axis, allows for selection of year
+        conditionalPanel(condition = "input.xaxis == 'Months' || input.xaxis == 'Precincts'", selectInput('year', "Year", choices = c(2008:2014)))
+      )
     ),
     mainPanel(
       #data visualization
-      tabsetPanel(
+      tabsetPanel(id = "tabs",
         tabPanel("Occurences",
                  plotlyOutput("plot"),
                  p("This bar graph shows the relationship between the occurences of various types of crimes and ", textOutput('xtitle', inline=TRUE),
                    ". The graph shows that the most commonly occuring crime is ", textOutput('maxCrime', inline=TRUE),
                    ". The least commonly occuring crime is ", textOutput('minCrime', inline=TRUE), ".")),
         tabPanel("Percent Breakdown",
-                 plotlyOutput("chart"))
+                 plotlyOutput("chart")),
+        tabPanel("Neighborhoods",
+                 tableOutput("table"))
       )
     )
   )
