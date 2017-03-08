@@ -1,25 +1,31 @@
+# install.packages("plotly")
+
 library("shiny")
 library("dplyr")
 library("ggplot2")
+library("plotly")
+
 
 # ggplot code for bar graphs
 barGraph <- function(data, xValue, xLab, yLab, chart.title) {
-  plot <- ggplot(data, aes(x = xValue, y = count, fill = crime.type)) +
-    geom_col() +
-    labs(x = xLab, y = yLab, title = chart.title) +
-    scale_fill_brewer(type = "qual", palette = "Set2")
+  plot <- ggplot(data, aes(x = xValue, y = count, fill = crime.type))
+  plot <- plot + geom_bar(stat = "identity", position = "stack")
+  plot <- plot + labs(x = xLab, y = yLab, title = chart.title)
+  plot <- plot + scale_fill_brewer(type = "qual", palette = "Set2")
+  plot <- ggplotly(plot)
   return(plot)
 }
 
 pieChart <- function(data, chart.title) {
   crime.count <- sum(data$count)
   data <- data %>% mutate(percent = round((count / crime.count) * 100, 2))
-  plot <- ggplot(data, aes(x = factor(1), y = percent, fill = crime.type)) +
-    geom_col(width = 1) +
-    coord_polar(theta = "y") +
-    scale_fill_brewer(type = "qual", palette = "Set2") +
-    labs(x = "", y = "", title = chart.title)
-  return(plot)
+  colors <- c('rgb(102,194,165)', 'rgb(252,141,98)', 'rgb(141,160,203)', 'rgb(231,138,195)', 'rgb(166,216,84)', 'rgb(255,217,47)', 'rgb(229,196,148)')
+  plot_ly(data, labels = ~crime.type, values = ~percent, type = "pie",
+          marker = list(colors = colors,
+                        line = list(color = '#FFFFFF', width = 1))) %>% 
+    layout(title = chart.title,
+           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 }
 
 # Make the months data table easier to graph
@@ -44,7 +50,7 @@ server <- function(input, output) {
   # Crime v. Years Data frame
   crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
   
-  output$plot <- renderPlot({
+  output$plot <- renderPlotly({
     if(input$xaxis == "Years") {
       barGraph(crime.years, crime.years$`year`, "Years", "Number of Occurences of the Crime", "Frequencies of Crime Types Over Time")
     } else if(input$xaxis == "Months") {
@@ -64,7 +70,7 @@ server <- function(input, output) {
   })
   
   # Code to output the chart on the 'Pie Chart' tab.
-  output$chart <- renderPlot({
+  output$chart <- renderPlotly({
     if(input$xaxis == "Years") {
       pieChart(crime.years, "Percent of Crime Types Over Time")
     } else if(input$xaxis == "Months") {

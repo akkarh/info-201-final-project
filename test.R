@@ -1,6 +1,8 @@
 #loading libraries
 library("dplyr")
 library("ggplot2")
+library("plotly")
+packageVersion("plotly")
 
 # Read in CSV file
 seattle <- read.csv('data/Seattle_Crime_Stats_2008_To_Present.csv', stringsAsFactors = FALSE)
@@ -32,12 +34,17 @@ View(crime.precincts)
 # Crime v. Years Plot
 # If we are going to have an option to filter the data by crime type, we need the following line of code:
   # crime.years <- crime.years %>% filter(crime.type == "crime type")
-ggplot(crime.years, aes(x = year, y = count, fill = crime.type)) +
-  geom_col() +
-  labs(x = "Years", y = "Number of Occurences of the Crime", title = "Frequencies of Crime Types Over Time") +
-  scale_fill_brewer(type = "qual", palette = "Set2")
-  
+plot <- ggplot(crime.years, aes(x = year, y = count, fill = crime.type))
+plot <- plot + geom_bar(stat = "identity", position = "stack")
+plot <- plot + labs(x = "Years", y = "Number of Occurences of the Crime", title = "Frequencies of Crime Types Over Time")
+plot <- plot + scale_fill_brewer(type = "qual", palette = "Set2")
+plot
+ggplotly(plot)
 
+plot_ly(crime.years, labels = ~year, values = ~percent, type = "pie") %>% 
+  layout(title = chart.title,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 # Crime v. Months
 # Month numbers to month names: to make the graph more readable
 months <- c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr",

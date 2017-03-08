@@ -1,4 +1,5 @@
 library("shiny")
+library("plotly")
 
 ui <- fluidPage(
   tags$head(
@@ -16,12 +17,12 @@ ui <- fluidPage(
       #data visualization
       tabsetPanel(
         tabPanel("Bar Graph",
-                 plotOutput("plot", hover = "plot_hover"),
+                 plotlyOutput("plot"),
                  p("This visualization shows the relationship between the occurences of various types of crimes and ", textOutput('xtitle', inline=TRUE),
                    ". The graph shows that the most commonly occuring crime is ", textOutput('maxCrime', inline=TRUE),
                    ". The least commonly occuring crime is ", textOutput('minCrime', inline=TRUE), ".")),
         tabPanel("Pie Chart",
-                 plotOutput("chart", hover = "chart_hover"))
+                 plotlyOutput("chart"))
       )
     )
   )
