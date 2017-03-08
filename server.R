@@ -2,8 +2,41 @@ library("shiny")
 library("dplyr")
 library("ggplot2")
 
+# ggplot code for bar graphs
+barGraph <- function(data, xValue, xLab, yLab, chart.title) {
+  plot <- ggplot(data, aes(x = xValue, y = count, fill = crime.type)) +
+    geom_col() +
+    labs(x = xLab, y = yLab, title = chart.title) +
+    scale_fill_brewer(type = "qual", palette = "Set2")
+  return(plot)
+}
+
+pieChart <- function(data, chart.title) {
+  crime.count <- sum(data$count)
+  data <- data %>% mutate(percent = round((count / crime.count) * 100, 2))
+  plot <- ggplot(data, aes(x = factor(1), y = percent, fill = crime.type)) +
+    geom_col(width = 1) +
+    coord_polar(theta = "y") +
+    scale_fill_brewer(type = "qual", palette = "Set2") +
+    labs(x = "", y = "", title = chart.title)
+  return(plot)
+}
+
+# Make the months data table easier to graph
+processCrimeMonths <- function(months, data) {
+  months.as.numbers <- data$month
+  months.names <- months[months.as.numbers]
+  data$month <- months.names
+  # Prevents alphabetical sorting of the x axis.
+  data$month <- factor(data$month, levels = unique(data$month))
+  return(data)
+}
+
 server <- function(input, output) {
   seattle <- read.csv('data/Seattle_Crime_Stats_2008_To_Present.csv', stringsAsFactors = FALSE)
+  months <- c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr",
+              "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug",
+              "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec")
   seattle.crime <- mutate(seattle, year = substr(REPORT_DATE, 7, 10)) %>% 
     mutate(month = substr(REPORT_DATE, 1, 2)) %>% 
     select(CRIME_TYPE, STAT_VALUE, REPORT_DATE, Precinct, month, year)
@@ -13,68 +46,37 @@ server <- function(input, output) {
   
   output$plot <- renderPlot({
     if(input$xaxis == "Years") {
-      ggplot(crime.years, aes(x = year, y = count, fill = crime.type)) +
-        geom_col() +
-        labs(x = "Years", y = "Number of Occurences of the Crime", title = "Frequencies of Crime Types Over Time") +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      barGraph(crime.years, crime.years$`year`, "Years", "Number of Occurences of the Crime", "Frequencies of Crime Types Over Time")
     } else if(input$xaxis == "Months") {
       # Crime v. Month Data frame
       crime.months <- filter(seattle.crime, year == input$year) %>% 
         group_by(month, crime.type) %>% summarise(count = sum(stat.value))
       # Month numbers to month names: to make the graph more readable
-      months <- c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr",
-                  "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug",
-                  "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec")
-      months.as.numbers <- crime.months$month
-      months.names <- months[months.as.numbers]
-      crime.months$month <- months.names
-      # Prevents alphabetical sorting of the x axis.
-      crime.months$month <- factor(crime.months$month, levels = unique(crime.months$month))
-      ggplot(crime.months, aes(x = month, y = count, fill = crime.type)) +
-        scale_x_discrete("month") +
-        geom_col() +
-        labs(x = "Months", y = paste("Number of occurences of the Crime in", input$year), title = paste("Frequencies of Crime Types in", input$year)) +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      crime.months <- processCrimeMonths(months, crime.months)
+      barGraph(crime.months, crime.months$`month`, "Years", paste("Number of occurences of the Crime in", input$year), paste("Frequencies of Crime Types in", input$year))
     } else if(input$xaxis == "Precincts") {
       # Crime v. Precinct Data frame
       crime.precincts <- filter(seattle.crime, year == input$year) %>% 
         group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
       # Crime v. Precincts
-      ggplot(crime.precincts, aes(x = precinct, y = count, fill = crime.type)) +
-        geom_col() +
-        labs(x = "Precincts", y = paste("Number of occurences of the Crime in", input$year), title = paste("Frequencies of Crime Types by Precincts in", input$year)) +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      barGraph(crime.precincts, crime.precincts$`precinct`, "Precincts", paste("Number of occurences of the Crime in", input$year), paste("Frequencies of Crime Types by Precincts in", input$year))
     }
   })
   
+  # Code to output the chart on the 'Pie Chart' tab.
   output$chart <- renderPlot({
     if(input$xaxis == "Years") {
-      crime.count <- sum(crime.years$count)
-      crime.years <- crime.years %>% mutate(percent = round((count / crime.count) * 100, 2))
-      ggplot(crime.years, aes(x = factor(1), y = percent, fill = crime.type)) +
-        geom_col(width = 1) +
-        coord_polar(theta = "y") +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      pieChart(crime.years, "Percent of Crime Types Over Time")
     } else if(input$xaxis == "Months") {
       # Crime v. Month Data frame
       crime.months <- filter(seattle.crime, year == input$year) %>% 
         group_by(month, crime.type) %>% summarise(count = sum(stat.value))
-      crime.count <- sum(crime.years$count)
-      crime.months <- crime.months %>% mutate(percent = round((count / crime.count) * 100, 2))
-      ggplot(crime.months, aes(x = factor(1), y = percent, fill = crime.type)) +
-        geom_col(width = 1) +
-        coord_polar(theta = "y") +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      pieChart(crime.months, paste("Percent of Crime Types in ", input$year))
     } else if(input$xaxis == "Precincts") {
       # Crime v. Precinct Data frame
       crime.precincts <- filter(seattle.crime, year == input$year) %>% 
         group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
-      crime.count <- sum(crime.years$count)
-      crime.precincts <- crime.precincts %>% mutate(percent = round((count / crime.count) * 100, 2))
-      ggplot(crime.precincts, aes(x = factor(1), y = percent, fill = crime.type)) +
-        geom_col(width = 1) +
-        coord_polar(theta = "y") +
-        scale_fill_brewer(type = "qual", palette = "Set2")
+      pieChart(crime.precincts, paste("Percent of Crimes in ", input$year))
     }
   })
   
@@ -85,33 +87,22 @@ server <- function(input, output) {
   #outputs data about the most common occuring crime
   output$maxCrime = renderText({
     if(input$xaxis == "Years"){
-      crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
-      maxData <- filter(crime.years, count == max(count)) %>% arrange(-count)
-      return(paste(maxData$crime.type[1], "in the year", maxData$year[1], "with a count of", maxData$count[1]))
-    }
-    else if(input$xaxis == "Months"){
-      crime.months <- filter(seattle.crime, year == input$year) %>% 
-        group_by(month, crime.type) %>% summarise(count = sum(stat.value))
-      # Crime v. Months
-      # Month numbers to month names: to make the graph more readable
-      months <- c("01" = "January", "02" = "February", "03" = "March", "04" = "April",
-                  "05" = "May", "06" = "June", "07" = "July", "08" = "August",
-                  "09" = "September", "10" = "October", "11" = "November", "12" = "December")
-      months.as.numbers <- crime.months$month
-      months.names <- months[months.as.numbers]
-      crime.months$month <- months.names
-      # Prevents alphabetical sorting of the x axis.
-      crime.months$month <- factor(crime.months$month, levels = unique(crime.months$month))
-      
-      maxData <- filter(crime.months, count == max(count)) %>% arrange(-count)
-      return(paste(maxData$crime.type[1], "with a count of", maxData$count[1]))
-    }
-    else if(input$xaxis == "Precincts"){
-      crime.precincts <- filter(seattle.crime, year == input$year) %>% 
-        group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
-      
-      maxData <- filter(crime.precincts, count == max(count)) %>% arrange(-count)
-      return(paste(maxData$crime.type[1], "in the", maxData$precinct[1], "precinct, with a count of", maxData$count[1]))
+        crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
+        maxData <- filter(crime.years, count == max(count)) %>% arrange(-count)
+        return(paste(maxData$crime.type[1], "in the year", maxData$year[1], "with a count of", maxData$count[1]))
+    } else if (input$xaxis == "Months"){
+        crime.months <- filter(seattle.crime, year == input$year) %>% 
+          group_by(month, crime.type) %>% summarise(count = sum(stat.value))
+        # Crime v. Months
+        # Month numbers to month names: to make the graph more readable
+        crime.months <- processCrimeMonths(months, crime.months)
+        maxData <- filter(crime.months, count == max(count)) %>% arrange(-count)
+        return(paste(maxData$crime.type[1], "with a count of", maxData$count[1]))
+    } else if (input$xaxis == "Precincts"){
+        crime.precincts <- filter(seattle.crime, year == input$year) %>% 
+          group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
+        maxData <- filter(crime.precincts, count == max(count)) %>% arrange(-count)
+        return(paste(maxData$crime.type[1], "in the", maxData$precinct[1], "precinct, with a count of", maxData$count[1]))
     }
   })
   
@@ -121,25 +112,15 @@ server <- function(input, output) {
       crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
       minData <- filter(crime.years, year < 2014 & count == min(count)) %>% arrange(count)
       return(paste(minData$crime.type[1], "in the year", minData$year[1], "with a count of", minData$count[1]))
-    }
-    else if(input$xaxis == "Months"){
+    } else if(input$xaxis == "Months"){
       crime.months <- filter(seattle.crime, year == input$year) %>% 
         group_by(month, crime.type) %>% summarise(count = sum(stat.value))
       # Crime v. Months
       # Month numbers to month names: to make the graph more readable
-      months <- c("01" = "January", "02" = "February", "03" = "March", "04" = "April",
-                  "05" = "May", "06" = "June", "07" = "July", "08" = "August",
-                  "09" = "September", "10" = "October", "11" = "November", "12" = "December")
-      months.as.numbers <- crime.months$month
-      months.names <- months[months.as.numbers]
-      crime.months$month <- months.names
-      # Prevents alphabetical sorting of the x axis.
-      crime.months$month <- factor(crime.months$month, levels = unique(crime.months$month))
-      
+      crime.months <- processCrimeMonths(months, crime.months)
       minData <- filter(crime.months, count == min(count)) %>% arrange(count)
       return(paste(minData$crime.type[1], "in the month of", minData$month[1], "with a count of", minData$count[1]))
-    }
-    else if(input$xaxis == "Precincts"){
+    } else if(input$xaxis == "Precincts"){
       crime.precincts <- filter(seattle.crime, year == input$year) %>% 
         group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
       
