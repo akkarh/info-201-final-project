@@ -40,6 +40,7 @@ processCrimeMonths <- function(months, data) {
 
 server <- function(input, output) {
   seattle <- read.csv('data/Seattle_Crime_Stats_2008_To_Present.csv', stringsAsFactors = FALSE)
+  precinct.info <- read.csv('data/Seattle_Precinct_Information.csv', stringsAsFactors = FALSE)
   months <- c("01" = "Jan", "02" = "Feb", "03" = "Mar", "04" = "Apr",
               "05" = "May", "06" = "Jun", "07" = "Jul", "08" = "Aug",
               "09" = "Sep", "10" = "Oct", "11" = "Nov", "12" = "Dec")
@@ -49,6 +50,11 @@ server <- function(input, output) {
   names(seattle.crime) <- c("crime.type", "stat.value", "report.date", "precinct", "month", "year")
   # Crime v. Years Data frame
   crime.years <- group_by(seattle.crime, year, crime.type) %>% summarise(count = sum(stat.value))
+  
+  output$table <- renderTable(width = '200px', {
+    precinct.info <- precinct.info %>% filter(Precinct == input$precinct)
+    precinct.info[1]
+  })
   
   output$plot <- renderPlotly({
     if(input$xaxis == "Years") {
