@@ -17,7 +17,10 @@ ui <- fluidPage(
     ), 
     mainPanel(
       #data visualization
-      plotOutput("plot", hover = "plot_hover")
+      plotOutput("plot", hover = "plot_hover"),
+      p("This visualization shows the relationship between the occurences of various types of crimes and ", textOutput('xtitle', inline=TRUE), 
+        ". The graph shows that the most commonly occuring crime is ", textOutput('maxCrime', inline=TRUE),
+        ". The least commonly occuring crime is ", textOutput('minCrime', inline=TRUE), ".")
     )
   )
 )
