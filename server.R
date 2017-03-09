@@ -77,19 +77,11 @@ server <- function(input, output) {
   
   # Code to output the chart on the 'Pie Chart' tab.
   output$chart <- renderPlotly({
-    if(input$xaxis == "Years") {
-      pieChart(crime.years, "Percent of Crime Types Over Time")
-    } else if(input$xaxis == "Months") {
-      # Crime v. Month Data frame
-      crime.months <- filter(seattle.crime, year == input$year) %>% 
-        group_by(month, crime.type) %>% summarise(count = sum(stat.value))
-      pieChart(crime.months, paste("Percent of Crime Types in ", input$year))
-    } else if(input$xaxis == "Precincts") {
-      # Crime v. Precinct Data frame
-      crime.precincts <- filter(seattle.crime, year == input$year) %>% 
-        group_by(precinct, crime.type) %>% summarise(count = sum(stat.value))
-      pieChart(crime.precincts, paste("Percent of Crimes in ", input$year))
-    }
+    # Crime v. Month Data frame
+    crime.months <- filter(seattle.crime, year == input$year) %>% 
+      group_by(month, crime.type) %>% summarise(count = sum(stat.value))
+    pieChart(crime.months, paste("Percent of Crime Types in ", input$year))
+    
   })
   
   output$xtitle = renderText({
