@@ -18,4 +18,4 @@ We obtained our data set from [_data.seattle.gov_](https://data.seattle.gov/Publ
 For this project, creating branches was not an option. In order to tackle this, we had to work in stages, so we divided the project in that manner. One person worked on wrangling the data, creating the necessary data frames. The next person worked on the visualization, deciding what was the appropriate way to interpret our data. After that we had someone transfer the visualizations and data frames onto a shiny app, they also created widgets and made it interactive. Finally we had someone work on polishing the final product, they added paragraphs, design features and other final touches.
 
 ## Link
-Checkout our [App](insert-link-here)!
+Checkout our [App](https://naune15.shinyapps.io/info-201-final-project/)!

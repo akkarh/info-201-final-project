@@ -1,0 +1,11 @@
+name: info-201-final-project
+title: info-201-final-project
+account: naune15
+server: shinyapps.io
+appId: 162317
+bundleId: 739442
+url: https://naune15.shinyapps.io/info-201-final-project/
+when: 1489029632.72261
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: test.R
